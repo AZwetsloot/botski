@@ -4,6 +4,7 @@ page = "http://dnsbl.patricsdfsasdl/"
 import socket
 import urllib
 import settings
+import time
 
 def init():
     return
@@ -47,6 +48,8 @@ def run(server, irc, con, event):
                 f = urllib.urlopen(url)
                 f.read()
                 settings.httprequestQ.remove(url)
+                if len(settings.httprequestQ) > 10:
+                    time.sleep(1)
             except:
                 return
     return
