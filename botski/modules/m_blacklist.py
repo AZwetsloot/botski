@@ -40,9 +40,7 @@ def run(server, irc, con, event):
             return
         if additional == None:
             additional = "null"
-        server.privmsg("#Kronos", "Type: %s Host: %s IP: %s Additional: %s" % (type, host, ip, str(additional)))
         settings.httprequestQ.append(page + "?action=%s&ip=%s&additional=%s" % (type, ip, additional))
-        server.privmsg('#Kronos', "Added %s?action=%s&ip=%s&additional=%s to httpreq list " % (page,type, ip, additional))
         for url in settings.httprequestQ:
             try:
                 f = urllib.urlopen(url)

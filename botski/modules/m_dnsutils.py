@@ -6,9 +6,7 @@ import traceback
 commandRegexString = '[!@.]'
 commandRegex = re.compile(commandRegexString)
 
-
 def init():
-    #This is run when the bot is started up.
     return
 
 def run(server, irc, con, event):

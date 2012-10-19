@@ -10,12 +10,6 @@ import imp
 
 commandRegexString = '[!@.]'
 commandRegex = re.compile(commandRegexString)
-DEBUG = False
-
-def debug_log(msg):
-    if DEBUG:
-        print msg
-
 
 def find_target_events():
     target_events = list()
@@ -23,6 +17,7 @@ def find_target_events():
         for event in settings.mod_dict[mod]:
             target_events.append(event)
     return target_events
+
 def get_hooks(module):
     debug_log("Loading " + module + " hooks.")
     mod = imp.new_module(module)
@@ -129,6 +124,3 @@ def run(server, irc, con, event):
                 server.send_raw( event.arguments()[0][commandLen:len(event.arguments()[0])])
                 
     return
-
-def hooks():
-    return M_HOOKS
