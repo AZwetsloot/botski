@@ -64,7 +64,6 @@ def start_messagecheck_daemon():
             results = c.fetchall()
             for row in results:
                 settings.server.send_raw(row[1])
-                print("Sent reminder: " + row[1])
             c.execute('''DELETE FROM reminders WHERE time <= %s''' % (int(time.time())))
             conn.commit()
             conn.close()
