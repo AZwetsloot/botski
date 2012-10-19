@@ -106,7 +106,6 @@ def handle_disconnect(c, e):
     return
 
 def handle_welcome(c, e):
-    print "handling welcome"
     if settings.nickservID == None:
         debug_log("Sent nickserv ID")
         server.send_raw(settings.nickservID)
