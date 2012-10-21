@@ -18,6 +18,13 @@ def find_target_events():
             target_events.append(event)
     return target_events
 
+def varexists(variable):
+    try:
+        eval(variable)
+        return True
+    except:
+        return False
+    
 def get_hooks(module):
     debug_log("Loading " + module + " hooks.")
     mod = imp.new_module(module)
@@ -122,5 +129,11 @@ def run(server, irc, con, event):
             elif command == 'raw':
                 commandLen = len(arguments[0]) + 1
                 server.send_raw( event.arguments()[0][commandLen:len(event.arguments()[0])])
+            elif command == 'var':
+                if len(arguments) > 1:
+                    if varexists(arguments[1]):
+                        server.privmsg(returnRoute, "Contents of %s = %s" % (arguments[1], str(eval(arguments[1]))))
+                    else:
+                        server.privmsg(returnRoute, "Var %s doesn't exist." % (arguments[1]))
                 
     return

@@ -13,6 +13,13 @@ global L_ERROR, L_INFO
 L_ERROR = 1
 L_INFO = 2
 
+def varexists(variable):
+    try:
+        eval(variable)
+        return True
+    except:
+        return False
+
 def debug_log(msg, flag=2):
     if settings.log_errors_to_console and flag == 1:
         if settings.log_errors_to_console and not settings.log_everything_to_console:
@@ -106,19 +113,19 @@ def handle_disconnect(c, e):
     return
 
 def handle_welcome(c, e):
-    if settings.nickservID == None:
+    if varexists('settings.nickservID'):
         debug_log("Sent nickserv ID")
         server.send_raw(settings.nickservID)
-    if settings.channels:
+    if varexists('settings.channels'):
         debug_log("Tried to join channels.")
         server.join(settings.channels)
-    if settings.realname:
+    if varexists('settings.realname'):
         debug_log("Sent setname")
         server.send_raw("SETNAME :" + settings.realname)
-    if settings.operLine:
+    if varexists('settings.operLine'):
         debug_log("Sent oper line")
         server.send_raw("OPER " + settings.operLine)
-    if settings.automodes:
+    if varexists('settings.automodes'):
         server.send_raw("UMODE2 " + settings.automodes)
     return
     
