@@ -6,9 +6,9 @@ bncPass = "Lollies:f00bars"
 
 #If useBNC = True, ignore the stuff directly below.
 
-serverhost = "alicks.co.uk"
+serverhost = "kronos.nl.eu.swiftirc.net"
 port = 6667
-nick = "notbotski"
+nick = "botski"
 serverpass = None
 ident = "botski"
 realname = "botski, loggi's younger brother"
@@ -16,7 +16,7 @@ automodes = "+Bps"
 
 #------------------------------------------------#
 
-operLine = "botski penis"
+#operLine = "botski penis"
 nickservID = "PRIVMSG NickServ :id mybotpasswin"
 channels = "#az,#kronos"
 owners = ["Alex!Alex@staff.swiftirc.net", "Patje!Patrick@staff.swiftirc.net"]
@@ -45,3 +45,4 @@ httprequestQ = list()
 m_bncapp_bncchan = "#az"
 m_bncapp_bncadminchan = "#az"
 m_bncapp_adminhosts = ["Alex!Alex@Alex.support.swiftirc.net"]
+
