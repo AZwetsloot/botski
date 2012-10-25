@@ -1,6 +1,6 @@
 import time
 import re
-import settings
+global channelProfiles
 M_HOOKS = ['privmsg', 'pubmsg', 'namreply', 'mode']
 accessList = ['Alex!Alex@staff.swiftirc.net']
 targetChannels = ['#kronos', '#az']
@@ -9,29 +9,8 @@ staffSymbols = re.compile("[+%@]")
 activityDB = 'activity.db'
 channelProfiles = {}
 
-def handlePubmsg(con, event):
-    return
-
-def handlePrivmsg(con, event):
-    return
-
-def handleNameslist(con, event):
-    for nickname in event.arguments()[2].split(" "):
-        print "Handling " + nickname
-        if re.search(staffSymbols, nickname):
-            print nickname + " matches regex"
-            if not channelProfiles.has_key(event.arguments()[1]):
-                channelProfiles[event.arguments()[1]] = list()
-            channelProfiles[event.arguments()[1].lower()].append(nickname.replace("@","").replace("%","").replace("+",""))
-    print str(channelProfiles)
-    return
-
-def buildNamelist(chan):
-    print "building name list for " + chan
-    settings.server.send_raw("NAMES " + chan)
-    return
-
 def executeSQL(str, db=activityDB, autocommit=True):
+    print "Ex Q: " + str
     try:
         conn = sqlite3.connect(db)
         c = conn.cursor()
@@ -43,11 +22,32 @@ def executeSQL(str, db=activityDB, autocommit=True):
     except:
         return traceback.format_exc()
         conn.close()
+        
+def handlePubmsg(con, event):
+    executeSQL('''INSERT INTO activitylog values(%s, "%s", "%s")''' % (int(time.gmttime()), event.source().split("!").lower(), event.target().lower()))
+    return
+
+def handlePrivmsg(con, event):
+    return
+
+def handleNameslist(con, event):
+    for nickname in event.arguments()[2].split(" "):
+        if re.search(staffSymbols, nickname):
+            if not channelProfiles.has_key(event.arguments()[1].lower()):
+                channelProfiles[event.arguments()[1]] = list()
+            channelProfiles[event.arguments()[1].lower()].append(nickname.replace("@","").replace("%","").replace("+","").lower())
+    print str(channelProfiles)
+    return
+
+def buildNamelist(chan):
+    server.send_raw("NAMES " + chan)
+    return
 
 def init():
     for channel in targetChannels:
         channelProfiles[channel.lower()] = list()
         server.send_raw("NAMES " + channel)
+        print "Init run"
     try:
         conn = sqlite3.connect(activityDB)
         c = conn.cursor()
@@ -64,10 +64,9 @@ def init():
     return
 
 def run(server, irc, con, event):
-    e = event
-    print str(e.eventtype()) + " " +  str(e.source()) + " " + str(e.arguments()[0])
     if event.eventtype() == "pubmsg" and event.target().lower() in targetChannels:
-        if event.source().split("!")[0] in channelProfile[event.target().lower()]:
+        print str(channelProfiles)
+        if event.source().split("!")[0].lower() in channelProfiles[event.target().lower()]:
             handlePubmsg(con, event)
     elif event.eventtype() == "privmsg":
         handlePrivmsg(con, event)
@@ -75,10 +74,6 @@ def run(server, irc, con, event):
         if event.arguments()[1] in targetChannels:
             handleNameslist(con, event)
     elif event.eventtype() == "mode":
-        print "Oh look, a mode, trying to match against " + event.arguments()[0]
         if re.search(staffModes, event.arguments()[0]):
-            print event.arguments()[0] + " matches staffmodes, must rebuild nicklist" 
             buildNamelist(event.target())
-        else:
-            print event.arguments()[0] + " does not match [vho]"
     return
