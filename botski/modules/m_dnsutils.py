@@ -32,10 +32,11 @@ def run(server, irc, con, event):
                         if c > 1:
                             for addr in addrinfo:
                                 x +=1
-                                if not x == c: 
-                                    output += addr[4][0] + ", "
-                                else:
-                                    output += addr[4][0]
+                                if not addr[4][0] in output:
+                                    if not x == c: 
+                                        output += addr[4][0] + ", "
+                                    else:
+                                        output += addr[4][0]
                             server.privmsg(returnRoute, arguments[1] + " has the addresses " + output)
                         else:
                             server.privmsg(returnRoute, arguments[1] + " has the address " + addrinfo[0][4][0])
