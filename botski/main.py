@@ -150,9 +150,9 @@ def main():
     irc.add_global_handler('welcome', handle_welcome)
     server = irc.server()
     if settings.useBNC:
-        server.connect(settings.bncHost, settings.bncPort, settings.nick, settings.bncPass, settings.ident)
+        server.connect(settings.bncHost, settings.bncPort, settings.nick, settings.bncPass, settings.ident, ssl=settings.ssl)
     else:
-        server.connect(settings.serverhost, settings.port, settings.nick, settings.serverpass, settings.ident)
+        server.connect(settings.serverhost, settings.port, settings.nick, settings.serverpass, settings.ident, ssl=settings.ssl)
     debug_log("Connected.", L_INFO)
     debug_log("Entered main loop.", L_INFO)
     settings.server = server

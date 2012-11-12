@@ -1,13 +1,15 @@
-useBNC = False
+useBNC = True
 
-bncHost = 'alicks.co.uk'
-bncPort = 3232
-bncPass = "Lollies:f00bars"
+bncHost = 'kronos.nl.eu.swiftirc.net'
+bncPort = 41762
+bncPass = "KronosTest:f00barsmells"
 
 #If useBNC = True, ignore the stuff directly below.
 
 serverhost = "al.cx"
-port = 6667
+ssl = True
+#If ssl = True, port must be 6697 or some other ssl enabled port
+port = 6697
 nick = "botski"
 serverpass = None
 ident = "botski"
@@ -16,7 +18,7 @@ automodes = "+Bps"
 
 #------------------------------------------------#
 
-operLine = "botski penis"
+#operLine = "botski penis"
 nickservID = "PRIVMSG NickServ :id mybotpasswin"
 channels = "#az,#kronos"
 owners = ["Alex!Alex@staff.swiftirc.net", "Patje!Patrick@staff.swiftirc.net"]
