@@ -1,5 +1,5 @@
 M_HOOKS = ['privnotice']
-source = "irc.az.gy"
+source = ["kronos.nl.eu.SwiftIRC.net", "irc.swiftirc.net"]
 page = "http://dnsbl.patricsdfsasdl/"
 
 import socket
@@ -24,7 +24,7 @@ def reversebit(str):
 
 def run(server, irc, con, event):
     e = event
-    if "G:Line" in event.arguments()[0] and event.source() == source and 'bots/clones' in event.arguments()[0].lower():
+    if "G:Line" in event.arguments()[0] and event.source() in source and 'bots/clones' in event.arguments()[0].lower():
         arguments = event.arguments()[0].split(" ")
         if arguments[2] == "added":
             reason = event.arguments()[0].split(":")[6]
