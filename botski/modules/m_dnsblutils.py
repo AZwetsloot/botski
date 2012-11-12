@@ -1,3 +1,4 @@
+import settings
 M_HOOKS = ['privmsg']
 accessHosts = ('staff.swiftirc.net', 'support.swiftirc.net')
 
@@ -48,12 +49,18 @@ def run(server, irc, con, event):
                                          db = settings.mysql_database)
                     cursor = conn.cursor ()
                     #cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (reversebit(ip)))
-                    cursor.execute('''delete from rr where id=8 and name="%s"''' % (reversebit(ip)))
-                    server.privmsg(nick, str(cursor.rowcount))
+                    cursor.execute('''delete from rr where zone=8 and name="%s"''' % (reversebit(ip)))
+                    if cursor.rowcount > 1:
+                        conn.rollback()
+                        server.privmsg(nick, "Something went wrong, and the syntax affected more than one line in the database. Please report this to Alex.")
+                    elif cursor.rowcount == 0:
+                        server.privmsg(nick, "There was no record for %s in the database." % (ip))
+                    else:
+                        server.privmsg(nick, "The IP was successfully removed from the database.")
+                        server.privmsg(nick, "Please take note that DNS results may be cached in the BOPM for up to 5 minutes.")
                     cursor.close()
                     conn.commit()
                     conn.close()
-                    server.privmsg(nick, "Removed %s from the DNSbl." % (ip))
                 except MySQLdb.Error, e:
                     print "Error %d: %s" % (e.args[0], e.args[1])
                     conn.rollback()
