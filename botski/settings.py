@@ -6,7 +6,7 @@ bncPass = "Lollies:f00bars"
 
 #If useBNC = True, ignore the stuff directly below.
 
-serverhost = "kronos.nl.eu.swiftirc.net"
+serverhost = "al.cx"
 port = 6667
 nick = "botski"
 serverpass = None
@@ -16,7 +16,7 @@ automodes = "+Bps"
 
 #------------------------------------------------#
 
-#operLine = "botski penis"
+operLine = "botski penis"
 nickservID = "PRIVMSG NickServ :id mybotpasswin"
 channels = "#az,#kronos"
 owners = ["Alex!Alex@staff.swiftirc.net", "Patje!Patrick@staff.swiftirc.net"]
@@ -45,4 +45,11 @@ httprequestQ = list()
 m_bncapp_bncchan = "#az"
 m_bncapp_bncadminchan = "#az"
 m_bncapp_adminhosts = ["Alex!Alex@Alex.support.swiftirc.net"]
+
+#------------------------------------------------#
+
+mysql_host = "5.39.77.214"
+mysql_user = "mydns"
+mysql_password = "MyDnS3572"
+mysql_database = "mydns" 
 

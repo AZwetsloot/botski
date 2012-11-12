@@ -1,6 +1,7 @@
 M_HOOKS = ['privnotice']
 source = "irc.az.gy"
 page = "http://dnsbl.patricsdfsasdl/"
+
 import socket
 import urllib
 import settings
@@ -8,6 +9,18 @@ import time
 
 def init():
     return
+
+def reversebit(str):
+    str = str.split(".")[::-1]
+    out = ""
+    c = 0
+    for s in str:
+        c += 1
+        if (c < len(str)):
+            out += s + "."
+        else:
+            out += s
+    return out
 
 def run(server, irc, con, event):
     e = event
@@ -38,6 +51,7 @@ def run(server, irc, con, event):
         except:
             print "Cannot resolve host " + host + " and therefore cannot add it to the blacklist."
             return
+        '''
         if additional == None:
             additional = "null"
         settings.httprequestQ.append(page + "?action=%s&ip=%s&additional=%s" % (type, ip, additional))
@@ -50,4 +64,32 @@ def run(server, irc, con, event):
                     time.sleep(1)
             except:
                 return
+        '''
+        #server.privmsg("#Home", "%s record %s%s (%s)" % (type, reversebit(ip), dnsbldomain, additional))
+        if type == "add":
+            try:
+                import MySQLdb
+            except:
+                print "No MySQLdb, no DNSbl."
+                return
+            global conn, cursor
+            try:
+                conn = MySQLdb.connect (host = settings.mysql_host,
+                                     user = settings.mysql_user,
+                                     passwd = settings.mysql_password,
+                                     db = settings.mysql_database)
+                cursor = conn.cursor ()
+                cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (reversebit(ip)))
+                cursor.close()
+                conn.commit()
+                conn.close()
+                print "Added " + ip + " to dnsbl."
+            except MySQLdb.Error, e:
+                print "Error %d: %s" % (e.args[0], e.args[1])
+                conn.rollback()
+                conn.close()
+                pass
+            
+            return
+
     return
