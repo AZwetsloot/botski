@@ -1,29 +1,18 @@
 M_HOOKS = ['privnotice']
 source = ["kronos.nl.eu.SwiftIRC.net", "irc.swiftirc.net"]
-page = "http://dnsbl.patricsdfsasdl/"
 
 import socket
 import urllib
 import settings
+import functions as f
 import time
 
 def init():
     return
 
-def reversebit(str):
-    str = str.split(".")[::-1]
-    out = ""
-    c = 0
-    for s in str:
-        c += 1
-        if (c < len(str)):
-            out += s + "."
-        else:
-            out += s
-    return out
-
 def run(server, irc, con, event):
-    e = event
+    reason = ""
+    host = ""
     if "G:Line" in event.arguments()[0] and event.source() in source and 'bots/clones' in event.arguments()[0].lower():
         arguments = event.arguments()[0].split(" ")
         if arguments[2] == "added":
@@ -65,7 +54,7 @@ def run(server, irc, con, event):
             except:
                 return
         '''
-        #server.privmsg("#Home", "%s record %s%s (%s)" % (type, reversebit(ip), dnsbldomain, additional))
+        #server.privmsg("#Home", "%s record %s%s (%s)" % (type, glob.f.reversebit(ip), dnsbldomain, additional))
         if type == "add":
             try:
                 import MySQLdb
@@ -79,12 +68,15 @@ def run(server, irc, con, event):
                                      passwd = settings.mysql_password,
                                      db = settings.mysql_database)
                 cursor = conn.cursor ()
-                cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (reversebit(ip)))
+                cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (f.reversebit(ip)))
                 cursor.close()
                 conn.commit()
                 conn.close()
                 print "Added " + ip + " to dnsbl."
             except MySQLdb.Error, e:
+                if "exists" in e.args[0]:
+                    #We don't want to hear it!
+                    pass
                 print "Error %d: %s" % (e.args[0], e.args[1])
                 conn.rollback()
                 conn.close()

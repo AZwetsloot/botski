@@ -1,20 +1,11 @@
 import settings
+import functions as f
+
 M_HOOKS = ['privmsg']
 accessHosts = ('staff.swiftirc.net', 'support.swiftirc.net')
 
 def init():
     return
-def reversebit(str):
-    str = str.split(".")[::-1]
-    out = ""
-    c = 0
-    for s in str:
-        c += 1
-        if (c < len(str)):
-            out += s + "."
-        else:
-            out += s
-    return out
 
 def checkAccess(host):
     for hostname in accessHosts:
@@ -48,8 +39,8 @@ def run(server, irc, con, event):
                                          passwd = settings.mysql_password,
                                          db = settings.mysql_database)
                     cursor = conn.cursor ()
-                    #cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (reversebit(ip)))
-                    cursor.execute('''delete from rr where zone=8 and name="%s"''' % (reversebit(ip)))
+                    #cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (f.reversebit(ip)))
+                    cursor.execute('''delete from rr where zone=8 and name="%s"''' % (f.reversebit(ip)))
                     if cursor.rowcount > 1:
                         conn.rollback()
                         server.privmsg(nick, "Something went wrong, and the syntax affected more than one line in the database. Please report this to Alex.")

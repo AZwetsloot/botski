@@ -7,60 +7,65 @@ import settings
 import time
 import thread
 import gc
-
+import functions as f 
 gc.enable()
 global L_ERROR, L_INFO
 L_ERROR = 1
 L_INFO = 2
+import sys
+_old_excepthook = sys.excepthook
 
-def varexists(variable):
-    try:
-        eval(variable)
-        return True
-    except:
-        return False
+def myexcepthook(exctype, value, traceback):
+    print "[%s] -> '%s'" % (str(exctype), str(value))
+    print "%s" % (str(traceback))
+    _old_excepthook(exctype, value, traceback)
 
-def debug_log(msg, flag=2):
-    if settings.log_errors_to_console and flag == 1:
-        if settings.log_errors_to_console and not settings.log_everything_to_console:
-            print msg
-        if settings.log_errors_to_file:
-            f = open(settings.logging_file, 'a+')
-            f.write(time.strftime('%m-%d->%H:%M:%S: ', time.gmtime()) + msg + "\n")
-            f.close()
-    if settings.log_info_to_console and flag == 2 and not settings.log_everything_to_console:
-        print msg
-    if settings.log_everything_to_console:
-        print msg
-    return
+sys.excepthook = myexcepthook
+
+class Logger(object):
+    def __init__(self, filename="botski.log"):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+        self.log.close()
+        self.cr_pattern = re.compile("^.*\r", re.M)
+        self.bs_pattern = re.compile(".\b")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log = open('botski.log', 'a')
+        message = self.bs_pattern.sub('', self.cr_pattern.sub('', message))
+        self.log.write(message)
+        self.log.close()
+                
+sys.stdout = Logger("botski.log")
         
 def get_hooks(module):
-    debug_log("Loading " + module + " hooks.", L_INFO)
+    f.debug_log("Loading " + module + " hooks.", L_INFO)
     mod = imp.new_module(module)
     fp, pathname, description = imp.find_module(module, ['modules'])
     try:
         mod = imp.load_module(module, fp, pathname, description)
     except:
-        debug_log("Failed to load " + module, L_ERROR)
+        f.debug_log("Failed to load " + module, L_ERROR)
         if fp:
             fp.close()
         return
-    debug_log(mod.M_HOOKS)
+    f.debug_log(mod.M_HOOKS)
     return mod.M_HOOKS
 
 def init_modules():
-    debug_log("Running init for modules...", L_INFO)
+    f.debug_log("Running init for modules...", L_INFO)
     for module in settings.mod_dict:
-        debug_log("Searching for init method in " + module, L_INFO)
+        f.debug_log("Searching for init method in " + module, L_INFO)
         mod = imp.new_module(module)
         fp, pathname, description = imp.find_module(module, ['modules'])
         try:
             mod = imp.load_module(module, fp, pathname, description)
             if mod.init:
-                debug_log("Ran an init function for " + module, L_INFO)
+                f.debug_log("Ran an init function for " + module, L_INFO)
                 mod.init()
         except:
-            debug_log("Failed to load " + module, L_ERROR)
+            f.debug_log("Failed to load " + module, L_ERROR)
         if fp:
             fp.close()
     return 
@@ -85,19 +90,19 @@ def find_target_events():
                 
 def handle_events(c, e):
     #print str(e.eventtype()) + " " +  str(e.source()) + " " + str(e.arguments()[0])
-    #debug_log("Handled event: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
+    #f.debug_log("Handled event: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
     if e.eventtype() in settings.target_events:
-        #debug_log("An event we want to look at was triggered: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
+        #f.debug_log("An event we want to look at was triggered: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
         target_modules = list()
         for mod in settings.mod_dict:
             if e.eventtype() in settings.mod_dict[mod]:
                 target_modules.append(mod)
-        #debug_log(str(target_modules) + " are interested in processing this event.")
+        #f.debug_log(str(target_modules) + " are interested in processing this event.")
         for mod in target_modules:
             try:
                 fp, pathname, description = imp.find_module(mod, ["modules"])
             except:
-                debug_log("Couldn't load module " + mod, L_ERROR)
+                f.debug_log("Couldn't load module " + mod, L_ERROR)
                 print traceback.format_exc()
                 return
             try:
@@ -113,19 +118,19 @@ def handle_disconnect(c, e):
     return
 
 def handle_welcome(c, e):
-    if varexists('settings.nickservID'):
-        debug_log("Sent nickserv ID")
+    if f.varexists('settings.nickservID'):
+        f.debug_log("Sent nickserv ID")
         server.send_raw(settings.nickservID)
-    if varexists('settings.channels'):
-        debug_log("Tried to join channels.")
+    if f.varexists('settings.channels'):
+        f.debug_log("Tried to join channels.")
         server.join(settings.channels)
-    if varexists('settings.realname'):
-        debug_log("Sent setname")
+    if f.varexists('settings.realname'):
+        f.debug_log("Sent setname")
         server.send_raw("SETNAME :" + settings.realname)
-    if varexists('settings.operLine'):
-        debug_log("Sent oper line")
+    if f.varexists('settings.operLine'):
+        f.debug_log("Sent oper line")
         server.send_raw("OPER " + settings.operLine)
-    if varexists('settings.automodes'):
+    if f.varexists('settings.automodes'):
         server.send_raw("UMODE2 " + settings.automodes)
     return
     
@@ -137,13 +142,13 @@ def main():
     init_modules()
     try:
         os.unlink(settings.logging_file)
-        debug_log("Deleted file: " + settings.logging_file, L_ERROR)
+        f.debug_log("Deleted file: " + settings.logging_file, L_ERROR)
     except:
-        debug_log("Failed to delete logging file: " + settings.logging_file, L_ERROR)
+        f.debug_log("Failed to delete logging file: " + settings.logging_file, L_ERROR)
         pass
-    debug_log("Module hooks loaded for modules: " + str(settings.mod_dict), L_INFO)
-    debug_log("Target events:" + str(settings.target_events), L_INFO)
-    debug_log("Connecting...", L_INFO)
+    f.debug_log("Module hooks loaded for modules: " + str(settings.mod_dict), L_INFO)
+    f.debug_log("Target events:" + str(settings.target_events), L_INFO)
+    f.debug_log("Connecting...", L_INFO)
     irc = irclib.IRC()
     irc.add_global_handler('all_events', handle_events)
     irc.add_global_handler('disconnect', handle_disconnect)
@@ -153,8 +158,8 @@ def main():
         server.connect(settings.bncHost, settings.bncPort, settings.nick, settings.bncPass, settings.ident, ssl=settings.ssl)
     else:
         server.connect(settings.serverhost, settings.port, settings.nick, settings.serverpass, settings.ident, ssl=settings.ssl)
-    debug_log("Connected.", L_INFO)
-    debug_log("Entered main loop.", L_INFO)
+    f.debug_log("Connected.", L_INFO)
+    f.debug_log("Entered main loop.", L_INFO)
     settings.server = server
     irc.process_forever()
     
