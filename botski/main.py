@@ -18,7 +18,7 @@ _old_excepthook = sys.excepthook
 
 def myexcepthook(exctype, value, traceback):
     print "[ERROR] -> '%s'" % (str(value))
-    print traceback.format_exc()
+    print str(traceback)
     _old_excepthook(exctype, value, traceback)
 
 sys.excepthook = myexcepthook

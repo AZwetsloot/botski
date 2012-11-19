@@ -2,7 +2,7 @@ import settings
 import functions as f
 
 M_HOOKS = ['privmsg']
-accessHosts = ('staff.swiftirc.net', 'support.swiftirc.net')
+accessHosts = ('staff.swiftirc.net')
 
 def init():
     return
@@ -22,7 +22,7 @@ def run(server, irc, con, event):
         command = arguments[1]
         if command == "remove":
             if len(arguments) == 2:
-                server.privmsg(nick, "Syntax: %s remove iptaddress" % (server.get_nickname()))
+                server.privmsg(nick, "Syntax: %s remove ipaddress" % (server.get_nickname()))
                 server.privmsg(nick, "Example: %s remove 92.158.43.23" % (server.get_nickname()))
             elif len(arguments) > 2:
                 ip = arguments[2]
@@ -53,6 +53,9 @@ def run(server, irc, con, event):
                     conn.commit()
                     conn.close()
                 except MySQLdb.Error, e:
+                    if "exists" in e.args[1]:
+                        conn.close()
+                        pass
                     print "Error %d: %s" % (e.args[0], e.args[1])
                     conn.rollback()
                     conn.close()
