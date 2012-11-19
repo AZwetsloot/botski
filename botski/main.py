@@ -7,6 +7,7 @@ import settings
 import time
 import thread
 import gc
+import re
 import functions as f 
 gc.enable()
 global L_ERROR, L_INFO
