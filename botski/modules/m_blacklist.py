@@ -74,7 +74,7 @@ def run(server, irc, con, event):
                 conn.close()
                 print "Added " + ip + " to dnsbl."
             except MySQLdb.Error, e:
-                if "exists" in e.args[0]:
+                if "exists" in e.args[1]:
                     #We don't want to hear it!
                     pass
                 print "Error %d: %s" % (e.args[0], e.args[1])
