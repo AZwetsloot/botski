@@ -39,7 +39,8 @@ class Logger(object):
         self.log.close()
                 
 sys.stdout = Logger("botski.log")
-        
+    
+    
 def get_hooks(module):
     f.debug_log("Loading " + module + " hooks.", L_INFO)
     mod = imp.new_module(module)
