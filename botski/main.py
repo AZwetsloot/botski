@@ -15,7 +15,9 @@ L_ERROR = 1
 L_INFO = 2
 import sys
 _old_excepthook = sys.excepthook
-
+pidfile = file("botski.pid", "w")
+pidfile.write(os.getpid())
+pidfile.close()
 def myexcepthook(exctype, value, traceback):
     print "[ERROR] -> '%s'" % (str(value))
     print str(traceback)
@@ -164,6 +166,7 @@ def main():
     f.debug_log("Entered main loop.", L_INFO)
     settings.server = server
     irc.process_forever()
+    print "irc.process_forever did not go forever"
     
 try:
     main()
