@@ -16,7 +16,7 @@ L_INFO = 2
 import sys
 _old_excepthook = sys.excepthook
 pidfile = file("botski.pid", "w")
-pidfile.write(os.getpid())
+pidfile.write(str(os.getpid()))
 pidfile.close()
 def myexcepthook(exctype, value, traceback):
     print "[ERROR] -> '%s'" % (str(value))
