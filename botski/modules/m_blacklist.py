@@ -62,7 +62,6 @@ def run(server, irc, con, event):
                 except:
                     print "No MySQLdb, no DNSbl."
                     return
-                global conn, cursor
                 try:
                     conn = MySQLdb.connect (host = settings.mysql_host,
                                          user = settings.mysql_user,
@@ -75,14 +74,19 @@ def run(server, irc, con, event):
                     conn.close()
                     print "Added " + ip + " to dnsbl."
                 except MySQLdb.Error, e:
-                    if "exists" in e.args[1]:
+                    if "duplicate" in e.args[1]:
                         #We don't want to hear it!
                         pass
                     print "Error %d: %s" % (e.args[0], e.args[1])
-                    conn.rollback()
-                    conn.close()
-                    pass
-                
+                finally:
+                    try:
+                        cursor.close()
+                        conn.commit()
+                        conn.close()
+                        return
+                    except:
+                        pass
+                        return
                 return
     except:
         print "Error %d: %s" % (e.args[0], e.args[1])
