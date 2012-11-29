@@ -10,7 +10,7 @@ def d():
     while True:
         time.sleep(5)
         settings.joins = 0
-    print "What? True is no longer True, question all reality and start preparing for interplanetenary destruction."
+    print "What? True is no longer True, question all reality and start preparing for interplanetary destruction."
     return
         
 def init():
