@@ -69,6 +69,7 @@ import string
 import sys
 import time
 import types
+import thread
 
 VERSION = 0, 4, 8
 DEBUG = 0
@@ -322,8 +323,9 @@ class IRC:
         """[Internal]"""
         h = self.handlers
         for handler in h.get("all_events", []) + h.get(event.eventtype(), []):
-            if handler[1](connection, event) == "NO MORE":
-                return
+            thread.start_new_thread(handler[1], (connection, event))
+            #if handler[1](connection, event) == "NO MORE":
+                #return
 
     def _remove_connection(self, connection):
         """[Internal]"""
