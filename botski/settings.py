@@ -54,4 +54,8 @@ mysql_host = "5.39.77.214"
 mysql_user = "mydns"
 mysql_password = "MyDnS3572"
 mysql_database = "mydns" 
+#------------------------------------------------#
+joins = 0
+internalNickDict = {}
+internalStatusDict = {}
 
