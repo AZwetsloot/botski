@@ -114,8 +114,12 @@ def runPrivmsg(server, irc, con, event):
                     if name.lower() == targetChannel.lower():
                         if re.match("[+%@]", channel.split("#")[0]):
                         #if "@" in channel.split('#')[0]:
-                            addEntry(nick)
-                            server.privmsg(nick, "Successfully added you to the opt-in list.")
+                            if not nick in settings.optin:
+                                addEntry(nick)
+                                server.privmsg(nick, "Successfully added you to the opt-in list.")
+                            else:
+                                server.privmsg(nick, "You're already in the optin list for this nickname.")
+                            del settings.internalWhoisDict[nick]
                         else:
                             server.privmsg(nick, "You're not voice, halfop or op in the target channel, and cannot receive these notices.")
                     else:
