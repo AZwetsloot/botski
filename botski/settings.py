@@ -1,4 +1,4 @@
-useBNC = True
+useBNC = False
 
 bncHost = 'kronos.nl.eu.swiftirc.net'
 bncPort = 41762
@@ -6,10 +6,10 @@ bncPass = "KronosTest:f00barsmells"
 
 #If useBNC = True, ignore the stuff directly below.
 
-serverhost = "al.cx"
-ssl = True
+serverhost = "kronos.al.cx"
+ssl = False
 #If ssl = True, port must be 6697 or some other ssl enabled port
-port = 6697
+port = 6667
 nick = "botski"
 serverpass = None
 ident = "botski"
@@ -20,7 +20,7 @@ automodes = "+Bps"
 
 #operLine = "botski penis"
 nickservID = "PRIVMSG NickServ :id mybotpasswin"
-channels = "#az,#kronos"
+channels = "#az"
 owners = ["Alex!Alex@staff.swiftirc.net", "Patje!Patrick@staff.swiftirc.net"]
 
 #------------------------------------------------#
@@ -58,4 +58,5 @@ mysql_database = "mydns"
 joins = 0
 internalNickDict = {}
 internalStatusDict = {}
-
+internalWhoisDict = {}
+optin = []

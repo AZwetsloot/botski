@@ -60,5 +60,23 @@ def run(server, irc, con, event):
                     conn.rollback()
                     conn.close()
                     pass
-                
+        elif command == "check":
+            ip = arguments[2]
+            try:
+                conn = MySQLdb.connect (host = settings.mysql_host,
+                                         user = settings.mysql_user,
+                                         passwd = settings.mysql_password,
+                                         db = settings.mysql_database)
+                cursor = conn.cursor ()
+                 #cursor.execute("insert into rr(zone, name,type,data) values(8,'%s','A','127.0.0.2')" % (f.reversebit(ip)))
+                cursor.execute('''select * from rr where zone=8 and name="%s"''' % (f.reversebit(ip)))
+                if cursor.rowcount >= 1:
+                    server.privmsg(nick, "The IP exists in the database.")
+                else:
+                    server.privmsg(nick, "The IP does not exist in the database.")
+                cursor.close()
+                conn.close()
+            except MySQLdb.Error, e:
+                print "Error %d: %s" % (e.args[0], e.args[1])
+                server.privmsg(nick, "Error %d: %s" % (e.args[0], e.args[1]))
         

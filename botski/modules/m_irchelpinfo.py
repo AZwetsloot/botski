@@ -1,9 +1,15 @@
-M_HOOKS = ['join', 'ctcpreply', 'privnotice']
+M_HOOKS = ['join', 'ctcpreply', 'privnotice', 'privmsg', 'whoischannels']
 joinsInFivSeconds = 5
-targetChannel = '#irchelp'
+targetChannel = '#az'
 import time
 import settings
 import thread
+import pickle
+import re
+import traceback
+import os.path
+commandRegexString = '[!@.]'
+commandRegex = re.compile(commandRegexString)
 
 
 def d():
@@ -16,6 +22,10 @@ def d():
 def init():
     #Set up the daemon to reset variables.
     thread.start_new_thread(d, ())
+    if os.path.isfile('store.pckl'):
+        f = open('store.pckl')
+        settings.optin = pickle.load(f)
+        f.close()
     return
 
 def evalHasK(nick):
@@ -24,6 +34,32 @@ def evalHasK(nick):
     else:
         return "None given in timeframe"
 
+def delEntry(user):
+    f = open('store.pckl', 'w')
+    try:
+        n = 0
+        for item in settings.optin:
+            if item.lower() == user.lower():
+                del settings.optin[n]
+                return
+            n += 1
+    except:
+        print "failed to delete user from settings.optin"
+        print traceback.format_exc()
+        return
+    pickle.dump(settings.optin, f)
+    f.close()
+    return
+
+def addEntry(user):
+    f = open('store.pckl', 'w')
+    try:
+        settings.optin.append(user)
+    except:
+        return
+    pickle.dump(settings.optin, f)
+    f.close()
+    return
 
 def watMeans(status):
     if status == "0":
@@ -40,7 +76,7 @@ def runJoin(server,irc, con, event):
     settings.joins += 1
     nick = event.source().split("!")[0]
     server.ctcp("VERSION", nick)
-    time.sleep(2)
+    time.sleep(2.5)
     server.privmsg("NickServ", "status " + nick)
     return
 
@@ -50,10 +86,53 @@ def runPrivnotice(server, irc, con, event):
     if nick.lower() == "nickserv":
         if arguments[0] == "STATUS":
             settings.internalStatusDict[arguments[1]] = arguments[2]
-            server.notice("+" + targetChannel, "[IRCHELP] Nick: " + arguments[1] + " | NickServ status: " + watMeans(settings.internalStatusDict[arguments[1]]) + " | Client: " + evalHasK(arguments[1]))
+            noticenicks = ""
+            for nick in settings.optin:
+                noticenicks += nick + ","
+                if len(noticenicks.split(",")) == 5:
+                    server.notice(noticenicks,  "[IRCHELP] Nick: " + arguments[1] + " | NickServ status: " + watMeans(settings.internalStatusDict[arguments[1]]) + " | Client: " + evalHasK(arguments[1]))
+                    noticenicks = ""
+            server.notice(noticenicks,  "[IRCHELP] Nick: " + arguments[1] + " | NickServ status: " + watMeans(settings.internalStatusDict[arguments[1]]) + " | Client: " + evalHasK(arguments[1]))
+            #server.notice("+" + targetChannel, "[IRCHELP] Nick: " + arguments[1] + " | NickServ status: " + watMeans(settings.internalStatusDict[arguments[1]]) + " | Client: " + evalHasK(arguments[1]))
             del settings.internalNickDict[arguments[1]]
             del settings.internalStatusDict[arguments[1]]
             return
+        
+def runPrivmsg(server, irc, con, event):
+    arguments = event.arguments()[0].split(" ")
+    if re.match(commandRegex, arguments[0][0]):
+        command = arguments[0][1:len(arguments[0])]
+        command = command.lower()
+        nick = event.source().split("!")[0]
+        if command == "optin":
+            server.send_raw("WHOIS " + nick)
+            server.privmsg(nick, "Debug: Waiting 1 second for a whois reply saying what channels you're in.")
+            time.sleep(1)
+            server.privmsg(nick, "Hmm, let's see.")
+            server.privmsg(nick, "Are you entered in the dict? Here:" + settings.internalWhoisDict[nick])
+            channels = settings.internalWhoisDict[nick].split(" ")
+            for channel in channels:
+                if "#" in channel:
+                    name = "#" + channel.split("#")[1]
+                    if name.lower() == targetChannel.lower():
+                        if re.match("[+%@]", channel.split("#")[0]):
+                        #if "@" in channel.split('#')[0]:
+                            addEntry(nick)
+                            server.privmsg(nick, "Successfully added you to the optin list.")
+                        else:
+                            server.privmsg(nick, "You're not voice, halfop or op in the target channel, and cannot receive these notices.")
+                    else:
+                        pass
+        elif command == "optout":
+            delEntry(nick)
+            server.privmsg(nick, "Even if you weren't on the list, you definitely aren't now!")
+        else:
+            return
+    return
+
+def runWhois(server, irc, con, event):
+    settings.internalWhoisDict[event.arguments()[0]] = event.arguments()[1]
+    return
 
 def run(server, irc, con, event):
     if event.eventtype() == "join" and event.target().lower() == targetChannel and settings.joins <= joinsInFivSeconds:
@@ -64,4 +143,8 @@ def run(server, irc, con, event):
     elif event.eventtype() == "privnotice":
         #thread.start_new_thread(runPrivnotice, (server,irc,con,event))
         runPrivnotice(server, irc, con, event)
+    elif event.eventtype() == "privmsg":
+        runPrivmsg(server, irc, con, event)
+    elif event.eventtype() == "whoischannels":
+        runWhois(server, irc, con, event)
     return
