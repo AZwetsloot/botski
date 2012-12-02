@@ -115,7 +115,7 @@ def runPrivmsg(server, irc, con, event):
                         if re.match("[+%@]", channel.split("#")[0]):
                         #if "@" in channel.split('#')[0]:
                             addEntry(nick)
-                            server.privmsg(nick, "Successfully added you to the optin list.")
+                            server.privmsg(nick, "Successfully added you to the opt-in list.")
                         else:
                             server.privmsg(nick, "You're not voice, halfop or op in the target channel, and cannot receive these notices.")
                     else:
@@ -128,7 +128,10 @@ def runPrivmsg(server, irc, con, event):
     return
 
 def runWhois(server, irc, con, event):
-    settings.internalWhoisDict[event.arguments()[0]] += " " + event.arguments()[1]
+    if settings.internalWhoisDict.has_key(event.arguments()[0]):
+        settings.internalWhoisDict[event.arguments()[0]] += " " + event.arguments()[1]
+    else:
+        settings.internalWhoisDict[event.arguments()[0]] = event.arguments()[1]
     return
 
 def run(server, irc, con, event):
