@@ -1,6 +1,6 @@
 M_HOOKS = ['join', 'ctcpreply', 'privnotice', 'privmsg', 'whoischannels']
 joinsInFivSeconds = 5
-targetChannel = '#az'
+targetChannel = '#irchelp'
 import time
 import settings
 import thread
@@ -106,10 +106,7 @@ def runPrivmsg(server, irc, con, event):
         nick = event.source().split("!")[0]
         if command == "optin":
             server.send_raw("WHOIS " + nick)
-            server.privmsg(nick, "Debug: Waiting 1 second for a whois reply saying what channels you're in.")
             time.sleep(1)
-            server.privmsg(nick, "Hmm, let's see.")
-            server.privmsg(nick, "Are you entered in the dict? Here:" + settings.internalWhoisDict[nick])
             channels = settings.internalWhoisDict[nick].split(" ")
             for channel in channels:
                 if "#" in channel:
@@ -131,7 +128,7 @@ def runPrivmsg(server, irc, con, event):
     return
 
 def runWhois(server, irc, con, event):
-    settings.internalWhoisDict[event.arguments()[0]] = event.arguments()[1]
+    settings.internalWhoisDict[event.arguments()[0]] += " " + event.arguments()[1]
     return
 
 def run(server, irc, con, event):
