@@ -13,21 +13,10 @@ def reversebit(str):
             out += s
     return out
 
-def debug_log(msg, flag=2):
-    '''
-    if settings.log_errors_to_console and flag == 1:
-        if settings.log_errors_to_console and not settings.log_everything_to_console:
-            print msg
-        if settings.log_errors_to_file:
-            f = open(settings.logging_file, 'a+')
-            f.write(time.strftime('%m-%d->%H:%M:%S: ', time.gmtime()) + msg + "\n")
-            f.close()
-    if settings.log_info_to_console and flag == 2 and not settings.log_everything_to_console:
-        print msg
-    if settings.log_everything_to_console:
-        print msg
-    '''
-    print msg
+def internalDebug(msg):
+    printDebugMessages = False
+    if printDebugMessages:
+        print(msg)
     return
 
 def varexists(variable):

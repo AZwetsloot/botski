@@ -1,23 +1,14 @@
 import src.irclib as irclib
-import modules
 import traceback
 import os
 import imp
 import settings
-import time
 import thread
 import gc
-import re
-import functions as f 
-gc.enable()
-global L_ERROR, L_INFO
-L_ERROR = 1
-L_INFO = 2
+import functions as f
 import sys
 _old_excepthook = sys.excepthook
-pidfile = file("botski.pid", "w")
-pidfile.write(str(os.getpid()))
-pidfile.close()
+
 def myexcepthook(exctype, value, traceback):
     print "[ERROR] -> '%s'" % (str(value))
     print str(traceback)
@@ -25,51 +16,33 @@ def myexcepthook(exctype, value, traceback):
 
 sys.excepthook = myexcepthook
 
-class Logger(object):
-    def __init__(self, filename="botski.log"):
-        self.terminal = sys.stdout
-        self.log = open(filename, "w")
-        self.log.close()
-        self.cr_pattern = re.compile("^.*\r", re.M)
-        self.bs_pattern = re.compile(".\b")
-
-    def write(self, message):
-        self.terminal.write(message)
-        self.log = open('botski.log', 'a')
-        message = self.bs_pattern.sub('', self.cr_pattern.sub('', message))
-        self.log.write(message)
-        self.log.close()
-                
-sys.stdout = Logger("botski.log")
-    
-    
 def get_hooks(module):
-    f.debug_log("Loading " + module + " hooks.", L_INFO)
+    f.internalDebug("Loading " + module + " hooks.")
     mod = imp.new_module(module)
     fp, pathname, description = imp.find_module(module, ['modules'])
     try:
         mod = imp.load_module(module, fp, pathname, description)
     except:
-        f.debug_log("Failed to load " + module, L_ERROR)
+        f.internalDebug("Failed to load " + module)
         if fp:
             fp.close()
         return
-    f.debug_log(mod.M_HOOKS)
+    f.internalDebug(mod.M_HOOKS)
     return mod.M_HOOKS
 
 def init_modules():
-    f.debug_log("Running init for modules...", L_INFO)
+    f.internalDebug("Running init for modules...")
     for module in settings.mod_dict:
-        f.debug_log("Searching for init method in " + module, L_INFO)
+        f.internalDebug("Searching for init method in " + module)
         mod = imp.new_module(module)
         fp, pathname, description = imp.find_module(module, ['modules'])
         try:
             mod = imp.load_module(module, fp, pathname, description)
             if mod.init:
-                f.debug_log("Ran an init function for " + module, L_INFO)
+                f.internalDebug("Ran an init function for " + module)
                 mod.init()
         except:
-            f.debug_log("Failed to load " + module, L_ERROR)
+            f.internalDebug("Failed to load " + module)
         if fp:
             fp.close()
     return 
@@ -94,19 +67,19 @@ def find_target_events():
                 
 def handle_events(c, e):
     #print str(e.eventtype()) + " " +  str(e.source()) + " " + str(e.arguments()[0])
-    #f.debug_log("Handled event: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
+    #f.internalDebug("Handled event: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
     if e.eventtype() in settings.target_events:
-        #f.debug_log("An event we want to look at was triggered: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
+        #f.internalDebug("An event we want to look at was triggered: %s With source: %s Target: %s Arguments: %s" % (e.eventtype(), e.source(), e.target(), str(e.arguments())))
         target_modules = list()
         for mod in settings.mod_dict:
             if e.eventtype() in settings.mod_dict[mod]:
                 target_modules.append(mod)
-        #f.debug_log(str(target_modules) + " are interested in processing this event.")
+        #f.internalDebug(str(target_modules) + " are interested in processing this event.")
         for mod in target_modules:
             try:
                 fp, pathname, description = imp.find_module(mod, ["modules"])
             except:
-                f.debug_log("Couldn't load module " + mod, L_ERROR)
+                f.internalDebug("Couldn't load module " + mod)
                 print traceback.format_exc()
                 return
             try:
@@ -117,28 +90,35 @@ def handle_events(c, e):
     else: 
         #We're not interested in this event.
         return
+
 def handle_disconnect(c, e):
     main()
     return
 
 def handle_welcome(c, e):
     if f.varexists('settings.nickservID'):
-        f.debug_log("Sent nickserv ID")
+        f.internalDebug("Sent nickserv ID")
         server.send_raw(settings.nickservID)
     if f.varexists('settings.channels'):
-        f.debug_log("Tried to join channels.")
+        f.internalDebug("Tried to join channels.")
         server.join(settings.channels)
     if f.varexists('settings.realname'):
-        f.debug_log("Sent setname")
+        f.internalDebug("Sent setname")
         server.send_raw("SETNAME :" + settings.realname)
     if f.varexists('settings.operLine'):
-        f.debug_log("Sent oper line")
+        f.internalDebug("Sent oper line")
         server.send_raw("OPER " + settings.operLine)
     if f.varexists('settings.automodes'):
         server.send_raw("UMODE2 " + settings.automodes)
     return
     
 def main():
+    #Write a pidfile.
+    pidfile = file("botski.pid", "w")
+    pidfile.write(str(os.getpid()))
+    pidfile.close()
+    #Enable Garbage Collector
+    gc.enable()
     global irc
     global server
     settings.mod_dict = build_mod_dict()
@@ -146,13 +126,13 @@ def main():
     init_modules()
     try:
         os.unlink(settings.logging_file)
-        f.debug_log("Deleted file: " + settings.logging_file, L_ERROR)
+        f.internalDebug("Deleted file: " + settings.logging_file)
     except:
-        f.debug_log("Failed to delete logging file: " + settings.logging_file, L_ERROR)
+        f.internalDebug("Failed to delete logging file: " + settings.logging_file)
         pass
-    f.debug_log("Module hooks loaded for modules: " + str(settings.mod_dict), L_INFO)
-    f.debug_log("Target events:" + str(settings.target_events), L_INFO)
-    f.debug_log("Connecting...", L_INFO)
+    f.internalDebug("Module hooks loaded for modules: " + str(settings.mod_dict))
+    f.internalDebug("Target events:" + str(settings.target_events))
+    f.internalDebug("Connecting...")
     irc = irclib.IRC()
     irc.add_global_handler('all_events', handle_events)
     irc.add_global_handler('disconnect', handle_disconnect)
@@ -162,11 +142,11 @@ def main():
         server.connect(settings.bncHost, settings.bncPort, settings.nick, settings.bncPass, settings.ident, ssl=settings.ssl)
     else:
         server.connect(settings.serverhost, settings.port, settings.nick, settings.serverpass, settings.ident, ssl=settings.ssl)
-    f.debug_log("Connected.", L_INFO)
-    f.debug_log("Entered main loop.", L_INFO)
+    f.internalDebug("Connected.")
+    f.internalDebug("Entered main loop.")
     settings.server = server
     irc.process_forever()
-    print "irc.process_forever did not go forever"
+    f.internalDebug("irc.process_forever did not go forever")
     
 try:
     main()
