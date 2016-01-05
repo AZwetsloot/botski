@@ -6,6 +6,8 @@ import traceback
 import time
 import thread
 import settings
+from dateutil import parser
+import datetime
 
 commandRegexString = '[!@.]'
 commandRegex = re.compile(commandRegexString)
@@ -141,4 +143,29 @@ def run(server, irc, con, event):
                 server.privmsg(returnRoute, "Database connection failed.")
                 traceback.print_exc()
             return
+        elif command == "at":
+            if len(arguments) > 1:
+                timestamp = arguments[1]
+                message = arguments[2:len(arguments)]
+                message = " ".join(message)
+                reminderTime = parser.parse(timestamp)
+                if reminderTime < datetime.datetime.now():
+                    server.privmsg(returnRoute, "Don't be preoccupied with the past; try a time in the future.")
+                else:
+                    epochTime = int((reminderTime - datetime.datetime(1970,1,1)).total_seconds())
+                    try:
+                        conn = sqlite3.connect('reminders.db')
+                        c = conn.cursor()
+                        c.execute('''INSERT INTO reminders values(%s, '%s')''' % (epochTime, "PRIVMSG " + returnRoute + " :" + event.source().split("!")[0] + ": " + message))
+                        conn.commit()
+                        conn.close()
+                        server.privmsg(returnRoute, "OK, I will remind you at " + reminderTime.strftime("%d%b%Y-%H:%M"))
+                    except:
+                        server.privmsg(returnRoute, "Database error: Your reminder was not added.")
+                        print traceback.format_exc()
+                        conn.close()
+                return
+            else:
+                server.privmsg(returnRoute, "[ Syntax: " + commandRegexString + "at (day/month/year)HH:MMtmz MSG | Example: .at 27/10/2016-12:00gmt Hb Alex :) Example: .at 22:50 Go to bed!")
+
     return
