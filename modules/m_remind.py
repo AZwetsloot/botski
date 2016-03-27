@@ -1,5 +1,6 @@
 M_HOOKS = ['pubmsg', 'privmsg']
 
+
 import re
 import sqlite3
 import traceback
@@ -8,6 +9,7 @@ import thread
 import settings
 from dateutil import parser
 import datetime
+import pytz
 
 commandRegexString = '[!@.]'
 commandRegex = re.compile(commandRegexString)
@@ -113,7 +115,8 @@ def run(server, irc, con, event):
                     duration = int(duration)
                 now = int(time.time())
                 reminderTime = now + duration
-                reminderDate = time.asctime(time.gmtime(reminderTime)) + "GMT"
+                reminderDate = time.asctime(time.localtime(reminderTime))
+
                 try:
                     conn = sqlite3.connect('reminders.db')
                     c = conn.cursor()
@@ -148,11 +151,16 @@ def run(server, irc, con, event):
                 timestamp = arguments[1]
                 message = arguments[2:len(arguments)]
                 message = " ".join(message)
+                tz = pytz.timezone("Europe/London")
+                utcnow = datetime.datetime.utcnow()
+                tzoffset = tz.utcoffset(utcnow)
                 reminderTime = parser.parse(timestamp)
+                utcRemindertime = reminderTime - tzoffset
                 if reminderTime < datetime.datetime.now():
                     server.privmsg(returnRoute, "Don't be preoccupied with the past; try a time in the future.")
                 else:
-                    epochTime = int((reminderTime - datetime.datetime(1970,1,1)).total_seconds())
+                    epochTime = int((utcRemindertime - datetime.datetime(1970,1,1)).total_seconds())
+
                     try:
                         conn = sqlite3.connect('reminders.db')
                         c = conn.cursor()

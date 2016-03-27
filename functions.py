@@ -14,7 +14,7 @@ def reversebit(str):
     return out
 
 def internalDebug(msg):
-    printDebugMessages = False
+    printDebugMessages = True
     if printDebugMessages:
         print(msg)
     return
